@@ -1,0 +1,16 @@
+{
+  "name": "zettel-outline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Filename-driven numeric outline navigation for Obsidian",
+  "scripts": {
+    "dev": "node esbuild.config.mjs --watch",
+    "build": "node esbuild.config.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "build:obsidian": "npm run build && node scripts/sync-plugin.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

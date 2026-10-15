@@ -1,0 +1,665 @@
+.zettel-outline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.zettel-outline__roots {
+  flex: 0 0 auto;
+  padding: 8px 8px 4px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.zettel-outline__roots-header {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.zettel-outline__roots-header-caret {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.zettel-outline__roots-header-text {
+  user-select: none;
+  font-size: var(--font-ui-medium);
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.zettel-outline__stale {
+  font-size: 12px;
+  color: var(--text-warning);
+  margin-bottom: 6px;
+}
+
+.zettel-outline__root-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  height: var(--zettel-outline-row-height, 22px);
+  box-sizing: border-box;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.zettel-outline__root-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.zettel-outline__root-row.is-active {
+  background: var(--background-modifier-active-hover);
+}
+
+.zettel-outline__root-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.zettel-outline__root-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.zettel-outline__root-count {
+  flex: 0 0 auto;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--background-modifier-border);
+  border: 1px solid color-mix(in srgb, var(--background-modifier-border) 70%, transparent);
+  color: var(--text-muted);
+  font-size: 0.55em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.zettel-outline__root-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  font-size: 0.75em;
+  min-width: 4ch;
+}
+
+.zettel-outline__tree {
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.zettel-outline__tree-empty {
+  padding: 10px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.zettel-outline__tree-empty--secondary {
+  padding-top: 0;
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.zettel-outline__tree-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.zettel-outline__tree-spacer {
+  position: relative;
+  width: 100%;
+}
+
+.zettel-outline__tree-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 0;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.zettel-outline__tree-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.zettel-outline__tree-row.is-active {
+  background: var(--background-modifier-active-hover);
+}
+
+.zettel-outline__tree-number {
+  flex: 0 0 auto;
+  padding-left: 3px;
+  margin-right: 0.25em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  font-size: 0.66em;
+  font-weight: 400;
+}
+
+.zettel-outline__tree-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-normal);
+}
+
+.zettel-outline__tree-row.is-level1 .zettel-outline__tree-title {
+  color: var(--zettel-outline-level1-title-color, color-mix(in srgb, var(--text-accent) 60%, var(--text-normal)));
+}
+
+details.zettel-outline-settings__section > summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--interactive-accent, var(--text-accent));
+  margin: 10px 0;
+}
+
+.zettel-outline-settings__example {
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  font-size: var(--font-ui-small);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.zettel-outline-settings__example code {
+  display: block;
+  margin: 4px 0;
+  white-space: pre-wrap;
+  color: var(--text-accent);
+}
+
+.zettel-outline-settings__example-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.zettel-outline-settings__error {
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}
+
+.zettel-outline-settings__error:empty {
+  display: none;
+}
+
+.zettel-outline-settings__number {
+  gap: 6px;
+}
+
+.zettel-outline-settings__number input[type="number"] {
+  width: 84px;
+  text-align: center;
+}
+
+.zettel-outline-settings__number button {
+  min-width: 30px;
+  padding: 0 8px;
+}
+
+.zettel-outline__root-title {
+  color: var(--zettel-outline-root-title-color, var(--text-normal));
+}
+
+.zettel-outline--list .zettel-outline__tree-row {
+  gap: 8px;
+  border-radius: 4px;
+}
+
+.zettel-outline--list .zettel-outline__tree-number {
+  padding-left: 0;
+  margin-right: 0;
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.zettel-outline--list .zettel-outline__tree-row.is-root .zettel-outline__tree-title {
+  text-align: left;
+  font-weight: 600;
+}
+
+.zettel-outline__list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  border-bottom: 0;
+}
+
+.zettel-outline .zettel-outline__branch-toggle {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.zettel-outline__branch-toggle:disabled {
+  visibility: hidden;
+}
+
+.zettel-outline__branch-toggle {
+  opacity: 0;
+}
+
+.zettel-outline__branch-toggle.is-collapsed,
+.zettel-outline__tree-row:hover .zettel-outline__branch-toggle,
+.zettel-outline__tree-row:focus-within .zettel-outline__branch-toggle {
+  opacity: 1;
+}
+
+.zettel-outline__indent-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--background-modifier-border);
+  pointer-events: none;
+}
+
+.zettel-outline__row-menu {
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.zettel-outline__tree-row:hover .zettel-outline__row-menu,
+.zettel-outline__tree-row:focus-within .zettel-outline__row-menu {
+  opacity: 1;
+}
+
+.zettel-outline__create-missing {
+  display: inline-flex;
+  vertical-align: middle;
+  color: var(--text-muted);
+}
+
+.zettel-outline__create-missing:hover {
+  color: var(--text-accent);
+}
+
+.zettel-outline-settings__filename {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-bottom: 12px;
+}
+
+.zettel-outline__tree-row.is-root .zettel-outline__tree-title {
+  color: var(--zettel-outline-root-title-color, var(--text-accent));
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Style two follows the typography and marker geometry of an editor list. */
+.zettel-outline--list {
+  --zettel-outline-list-indent: 2em;
+  font-family: var(--font-text, var(--font-interface));
+  font-size: var(--font-text-size, 16px);
+}
+
+.zettel-outline--list .zettel-outline__tree-viewport {
+  padding: 0 2px;
+}
+
+.zettel-outline--list .zettel-outline__tree-row {
+  gap: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 6px;
+  border-radius: 3px;
+  line-height: var(--line-height-normal, 1.5);
+}
+
+.zettel-outline--list .zettel-outline__tree-number {
+  font-family: inherit;
+  font-size: 1em;
+  color: var(--list-marker-color, var(--text-faint));
+  font-variant-numeric: normal;
+  margin-right: 0.25em;
+  padding: 0;
+}
+
+.zettel-outline--list .zettel-outline__tree-title {
+  flex: 0 1 auto;
+  font-weight: 400;
+  color: var(--text-normal);
+}
+
+.zettel-outline--list .zettel-outline__tree-row.is-level1 .zettel-outline__tree-title {
+  color: var(--zettel-outline-level1-title-color, var(--text-normal));
+}
+
+.zettel-outline--list .zettel-outline__tree-row.is-active {
+  background: color-mix(in srgb, var(--interactive-accent) 7%, transparent);
+}
+
+.zettel-outline--list .zettel-outline__branch-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--collapse-icon-color, var(--text-faint));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zettel-outline--list .zettel-outline__branch-toggle svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.zettel-outline--list .zettel-outline__branch-toggle:hover {
+  color: var(--text-accent);
+}
+
+.zettel-outline--list .zettel-outline__indent-guide {
+  background: var(--indentation-guide-color, var(--background-modifier-border));
+  width: var(--indentation-guide-width, 1px);
+}
+
+.zettel-outline--list .zettel-outline__row-menu {
+  margin-left: 0.3em;
+  padding: 0 3px;
+  color: var(--text-faint);
+  height: 20px;
+}
+
+.zettel-outline--list .zettel-outline__create-missing {
+  padding: 0 2px;
+  height: 20px;
+  opacity: 0.5;
+}
+
+.zettel-outline--list .zettel-outline__create-missing:hover {
+  opacity: 1;
+}
+
+/* Compact note creation: filename is the primary visual anchor. */
+.modal.zettel-outline-create-modal {
+  width: min(480px, 90vw);
+  font-family: var(--font-interface);
+}
+
+.zettel-outline-create-modal .zettel-outline-create__heading {
+  margin: 0 0 14px;
+  font-size: var(--font-ui-small);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.zettel-outline-create-modal .zettel-outline-create__preview {
+  margin: 0 0 22px;
+  padding: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-normal);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.zettel-outline-create-modal .modal-content .setting-item {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+  padding: 7px 0;
+  gap: 12px;
+}
+
+.zettel-outline-create-modal .setting-item-info {
+  flex: 0 0 64px;
+  margin: 0;
+}
+
+.zettel-outline-create-modal .setting-item-name {
+  font-size: var(--font-ui-small);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.zettel-outline-create-modal .setting-item-control {
+  flex: 1;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.zettel-outline-create-modal input {
+  font-family: inherit;
+  font-size: var(--font-ui-medium);
+  height: 34px;
+  box-shadow: none;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.zettel-outline-create-modal input:focus {
+  border-color: var(--background-modifier-border-focus);
+  box-shadow: 0 0 0 1px var(--background-modifier-border-focus);
+  outline: none;
+}
+
+.zettel-outline-create__row input[type="text"] {
+  width: 100%;
+}
+
+.zettel-outline-create__stepper {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--input-radius, 5px);
+  overflow: hidden;
+}
+
+.zettel-outline-create__stepper:focus-within {
+  border-color: var(--background-modifier-border-focus);
+}
+
+.zettel-outline-create-modal .zettel-outline-create__stepper input {
+  width: 60px;
+  height: 32px;
+  padding: 0 4px;
+  text-align: center;
+  border: 0;
+  border-left: 1px solid var(--background-modifier-border);
+  border-right: 1px solid var(--background-modifier-border);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.zettel-outline-create__stepper input::-webkit-inner-spin-button,
+.zettel-outline-create__stepper input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__stepper button {
+  height: 32px;
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__stepper button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.zettel-outline-create__parent {
+  font-size: var(--font-ui-medium);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.zettel-outline-create-modal .modal-content .zettel-outline-create__actions {
+  padding: 20px 0 0;
+}
+
+.zettel-outline-create__actions .setting-item-info {
+  display: none;
+}
+
+.zettel-outline-create__actions .setting-item-control {
+  justify-content: flex-end;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__cancel {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.zettel-outline-create-modal .zettel-outline-settings__error:empty {
+  display: none;
+}
+
+/* Keep modal rows aligned even when a theme styles settings as top-aligned. */
+.zettel-outline-create-modal .modal-content .zettel-outline-create__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__row .setting-item-info {
+  align-self: center;
+  padding: 0;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__row .setting-item-name {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__row .setting-item-control {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex-wrap: nowrap;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__number {
+  align-items: center;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__parent {
+  line-height: 1;
+  margin: 0;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__heading,
+.zettel-outline-create-modal .zettel-outline-create__row .setting-item-name {
+  font-size: var(--font-ui-medium);
+}
+
+.zettel-outline-create-modal .zettel-outline-create__row .setting-item-info {
+  flex-basis: 76px;
+}
+
+.zettel-outline-create-modal .zettel-outline-create__number input[type="number"] {
+  width: 20px;
+  min-width: 20px;
+  padding: 0 1px;
+  box-sizing: border-box;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.zettel-outline-create__number input::-webkit-inner-spin-button,
+.zettel-outline-create__number input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.zettel-outline-create-modal button.zettel-outline-create__number-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  padding: 0;
+  margin-left: 5px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: help;
+}
+
+.zettel-outline-create__number-hint svg {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.zettel-outline-create__instant-hint {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  width: max-content;
+  max-width: min(300px, 70vw);
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: normal;
+  box-shadow: var(--shadow-s);
+  pointer-events: none;
+}

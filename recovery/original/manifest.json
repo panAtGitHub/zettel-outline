@@ -1,0 +1,10 @@
+{
+  "id": "zettel-outline",
+  "name": "Zettel Outline",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Build an outline tree from strict numeric IDs in file names.",
+  "author": "Dusk",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
