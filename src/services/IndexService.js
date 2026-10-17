@@ -1,3 +1,4 @@
+import { parseIndexedFile, normalizeExcludedFolders } from "../index/Exclusions.js";
 import { MarkdownView, TFile, Platform } from "obsidian";
 import { t } from "../i18n/i18n.js";
 import { validateDelimiterConstraints, parseFileName, normalizeIdForCompare, segmentsFromIdKey } from "../index/Parser.js";
@@ -30,6 +31,9 @@ function settingsHash(settings) {
     idSegmentDelimiter: settings.idSegmentDelimiter,
     allowTrimAroundDelimiter: settings.titleDelimiter === " " ? false : settings.allowTrimAroundDelimiter
   };
+  const folders=normalizeExcludedFolders(settings.excludedFolders);
+  if (folders.length) normalized.excludedFolders=folders;
+  if (settings.excludeDateIds) normalized.excludeDateIds=true;
   return fnv1a32(JSON.stringify(normalized));
 }
 function snapshotFromFiles(files) {
@@ -336,6 +340,7 @@ var IndexService = class {
     }, ms);
   }
   async flush() {
+    if (this.editBatch && !this.editBatchFlushing) return;
     var _a, _b, _c, _d, _e, _f;
     if (!this.index) return;
     if (this.index.stale) return;
@@ -389,7 +394,7 @@ var IndexService = class {
     const file = this.deps.app.vault.getAbstractFileByPath(path);
     if (!isMarkdownFile(file)) return;
     const settings = this.deps.settings();
-    const parsed = parseFileName(file.basename, settings);
+    const parsed = parseIndexedFile(file, settings);
     if (!parsed.ok) return;
     const c = {
       filePath: file.path,
@@ -440,6 +445,13 @@ var IndexService = class {
       const winnerPath = this.conflictWinner.get(candidate.normalizedIdKey);
       if (winnerPath !== candidate.filePath) continue;
       visibleCandidates.push(candidate);
+    }
+    if (!visibleCandidates.length) {
+      this.index.rootMeta.delete(rootKey);
+      this.recomputeRoots();
+      this.recomputeConflicts();
+      this.recomputeNormalizedIdIndex();
+      return;
     }
     visibleCandidates.sort((a, b) => a.filePath < b.filePath ? -1 : a.filePath > b.filePath ? 1 : 0);
     const visibleIdSet = /* @__PURE__ */ new Set();
@@ -568,7 +580,7 @@ var IndexService = class {
     this.conflictSet.clear();
     this.conflictWinner.clear();
     for (const file of files) {
-      const parsed = parseFileName(file.basename, settings);
+      const parsed = parseIndexedFile(file, settings);
       if (!parsed.ok) {
         addIgnored(ignoredStats, parsed.reason);
         continue;

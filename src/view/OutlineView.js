@@ -1,8 +1,12 @@
+import { StructureHistoryModal } from "./StructureHistoryModal.js";
 import { openNoteCreation } from "./NoteCreation.js";
-import { ItemView, setIcon, Notice } from "obsidian";
+import { ItemView, setIcon, addIcon, Notice } from "obsidian";
 import { VirtualTree } from "./VirtualTree.js";
 import { t } from "../i18n/i18n.js";
 
+// Outward arrows between separated edges; inward arrows meeting one solid edge.
+addIcon("zettel-outline-expand-all", '<path d="M18 16H82M18 84H82M50 42V25M40 35L50 25L60 35M50 58V75M40 65L50 75L60 65" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>');
+addIcon("zettel-outline-collapse-all", '<path d="M18 50H82" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/><path d="M50 10V34M40 24L50 34L60 24M50 90V66M40 76L50 66L60 76" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>');
 var VIEW_TYPE_ZETTEL_OUTLINE = "zettel-outline-view";
 var OutlineView = class extends ItemView {
   constructor(leaf, indexService) {
@@ -32,6 +36,20 @@ var OutlineView = class extends ItemView {
     this.rootsEl = container.createDiv({ cls: "zettel-outline__roots" });
     this.treeEl = container.createDiv({ cls: "zettel-outline__tree" });
     this.refresh();
+  }
+  focusKeyboard() {
+    if (this.indexService.getSettings().outlineStyle !== "list") {
+      new Notice(t(this.app,"command.focusNeedsList"));
+      return;
+    }
+    if (!this.virtualTree?.forest) this.refresh();
+    const tree=this.virtualTree;
+    if (!tree?.forest) return;
+    if (tree.editing && tree.renameInput) {tree.renameInput.focus();return;}
+    tree.viewportEl.focus({preventScroll:true});
+    const id=tree.visible.some(row=>row.idKey===tree.selectedId) ? tree.selectedId
+      : tree.visible.some(row=>row.idKey===tree.activeId) ? tree.activeId : tree.visible[0]?.idKey;
+    if (id) tree.selectRow(id);
   }
   async onClose() {
     var _a;
@@ -103,10 +121,22 @@ var OutlineView = class extends ItemView {
       this.virtualTree = new VirtualTree(this.treeEl, this.indexService, {forest:true});
       this.virtualTreeRootKey = null;
     }
+    const history = this.rootsEl.createEl("button",{cls:"clickable-icon",attr:{"aria-label":t(this.app,"archive.open"),title:t(this.app,"archive.open")}});
+    setIcon(history,"history");history.onclick=()=>new StructureHistoryModal(this.app,this.indexService).open();
+    const rebuild = this.rootsEl.createEl("button", {cls:"clickable-icon",attr:{"aria-label":t(this.app,"settings.rebuild.name"),title:t(this.app,"settings.rebuild.name")}});
+    setIcon(rebuild,"refresh-cw");
+    rebuild.disabled = this.indexService.isRebuilding() || !!this.indexService.editBatch || !!this.indexService.editHistory?.busy;
+    rebuild.onclick = async () => {
+      if(this.indexService.isRebuilding() || this.indexService.editBatch || this.indexService.editHistory?.busy)return;
+      rebuild.disabled=true;
+      try {await this.indexService.rebuild({reason:"manual"});}
+      catch(error){new Notice(t(this.app,"settings.example.rebuildFailed"));console.error("Zettel Outline: rebuild failed",error);}
+      finally {this.refresh();}
+    };
     const add = this.rootsEl.createEl("button", {cls:"clickable-icon",attr:{"aria-label":t(this.app,"create.root"),title:t(this.app,"create.root")}});
     setIcon(add,"circle-plus");
     add.onclick = () => openNoteCreation(this.app,this.indexService,"root");
-    for (const [icon,key,expand] of [["list-tree","tree.expandAll",true],["fold-vertical","tree.collapseAll",false]]) {
+    for (const [icon,key,expand] of [["zettel-outline-expand-all","tree.expandAll",true],["zettel-outline-collapse-all","tree.collapseAll",false]]) {
       const button = this.rootsEl.createEl("button", {cls:"clickable-icon",attr:{"aria-label":t(this.app,key),title:t(this.app,key)}});
       setIcon(button,icon);
       button.disabled = !index || index.stale;

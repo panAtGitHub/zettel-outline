@@ -12,6 +12,8 @@ var defaultSettings = {
   saveDebounceMs: 2e3,
   rowHeightPx: 22,
   outlineStyle: "classic",
+  excludedFolders: [],
+  excludeDateIds: false,
   overscanRows: 8,
   enableProfiler: false,
   treeRootTitleColor: "",

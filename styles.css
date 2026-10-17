@@ -332,6 +332,10 @@ details.zettel-outline-settings__section > summary {
 /* Style two follows the typography and marker geometry of an editor list. */
 .zettel-outline--list {
   --zettel-outline-list-indent: 2em;
+  --zettel-outline-list-start: 1em;
+  --zettel-outline-guide-offset: 0.5em;
+  --zettel-outline-fold-size: 16px;
+  --zettel-outline-fold-gap: 0.25em;
   font-family: var(--font-text, var(--font-interface));
   font-size: var(--font-text-size, 16px);
 }
@@ -350,6 +354,7 @@ details.zettel-outline-settings__section > summary {
 }
 
 .zettel-outline--list .zettel-outline__tree-number {
+  position: relative;
   font-family: inherit;
   font-size: 1em;
   color: var(--list-marker-color, var(--text-faint));
@@ -374,6 +379,10 @@ details.zettel-outline-settings__section > summary {
 
 .zettel-outline--list .zettel-outline__branch-toggle {
   position: absolute;
+  left: auto;
+  right: calc(100% + var(--zettel-outline-fold-gap));
+  width: var(--zettel-outline-fold-size);
+  height: 18px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--collapse-icon-color, var(--text-faint));
@@ -663,3 +672,166 @@ details.zettel-outline-settings__section > summary {
   box-shadow: var(--shadow-s);
   pointer-events: none;
 }
+
+.zettel-outline--list .zettel-outline__tree-viewport:focus {
+  outline: none;
+}
+
+.zettel-outline--list .zettel-outline__tree-viewport:focus .zettel-outline__tree-row.is-selected {
+  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--interactive-accent) 30%, transparent);
+  outline-offset: -1px;
+}
+
+.zettel-outline--list .zettel-outline__tree-row.is-active .zettel-outline__tree-number {
+  color: var(--text-accent);
+}
+
+.zettel-outline--list .zettel-outline__tree-title:has(.zettel-outline__rename-input) {
+  flex: 1;
+  overflow: visible;
+}
+.zettel-outline--list input.zettel-outline__rename-input {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0 3px;
+  font: inherit;
+  border: 1px solid var(--interactive-accent);
+  box-shadow: none;
+}
+
+.zettel-outline--list .zettel-outline__tree-row[draggable="true"] { cursor: grab; }
+.zettel-outline--list .zettel-outline__tree-row.is-drop-child {
+  background: color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+  outline: 1px solid var(--interactive-accent);
+  outline-offset: -1px;
+}
+.zettel-outline--list .zettel-outline__tree-row.is-drop-sibling {
+  box-shadow: inset 0 -2px var(--interactive-accent);
+}
+.zettel-outline__root-drop {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  z-index: 5;
+  padding: 10px;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 5px;
+  background: var(--background-primary);
+  color: var(--text-muted);
+  text-align: center;
+  font-size: var(--font-ui-small);
+}
+.zettel-outline__root-drop.is-dragging { display: block; }
+.zettel-outline__root-drop.is-drop-target {
+  border-color: var(--interactive-accent);
+  color: var(--text-accent);
+}
+
+/* Drag projection follows horizontal indentation; feedback stays stable per target. */
+.zettel-outline--list .zettel-outline__tree-row.is-drop-child {
+  background: color-mix(in srgb, var(--interactive-accent) calc(6% + var(--drop-progress, 0) * 14%), transparent);
+  outline-color: color-mix(in srgb, var(--interactive-accent) 50%, transparent);
+  transition: background-color 180ms ease, outline-color 180ms ease;
+}
+.zettel-outline--list .is-drop-child .zettel-outline__tree-title {
+  transform: translateX(calc(var(--drop-progress, 0) * 3px));
+  transition: transform 180ms ease;
+}
+.zettel-outline--list .zettel-outline__tree-row.is-drop-sibling {
+  box-shadow: none;
+}
+.zettel-outline--list .zettel-outline__tree-row.is-drop-child::after,
+.zettel-outline--list .zettel-outline__tree-row.is-drop-sibling::after {
+  content: "";
+  position: absolute;
+  left: var(--drop-indent, 16px);
+  right: 6px;
+  bottom: 0;
+  height: 2px;
+  background: var(--interactive-accent);
+  pointer-events: none;
+  transition: left 150ms ease;
+}
+.zettel-outline__drop-feedback {
+  display: none;
+  position: absolute;
+  bottom: 52px;
+  left: 8px;
+  right: 8px;
+  z-index: 6;
+  padding: 7px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  box-shadow: var(--shadow-s);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zettel-outline--list .zettel-outline__tree-row.is-drop-child,
+  .zettel-outline--list .is-drop-child .zettel-outline__tree-title,
+  .zettel-outline--list .zettel-outline__tree-row::after { transition: none; }
+}
+
+.zettel-outline--list .zettel-outline__tree-title,
+.zettel-outline--list .zettel-outline__tree-number { cursor: grab; }
+.zettel-outline--list .is-branch-dragging { user-select: none; cursor: grabbing; }
+.zettel-outline--list .is-drag-source { opacity: 0.35; }
+.zettel-outline--list .is-drag-parent {
+  background: color-mix(in srgb,var(--interactive-accent) 14%,transparent);
+  transition: background-color 150ms ease;
+}
+.zettel-outline__position-line {
+  display: none;
+  position: fixed;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  z-index: 1000;
+  pointer-events: none;
+  transition: left 90ms ease,width 90ms ease;
+}
+.zettel-outline__position-line::before {
+  content: "";position:absolute;left:-3px;top:-2px;
+  width:7px;height:7px;border-radius:50%;background:var(--interactive-accent);
+}
+
+.modal.zettel-outline-history-modal { width: min(1100px, 94vw); max-height: 90vh; }
+.zettel-outline-history-modal .modal-content { display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+.zettel-outline-history-modal h3 { margin: 0 0 14px; }
+.zettel-outline-history__toolbar { display:flex; align-items:center; gap:12px; }
+.zettel-outline-history__caption { flex:1; text-align:center; color:var(--text-muted); font-size:var(--font-ui-small); }
+.zettel-outline-history__filter { display:flex; align-items:center; gap:6px; padding:12px 0; font-size:var(--font-ui-small); color:var(--text-muted); }
+.zettel-outline-history__headers, .zettel-outline-history__pair { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.zettel-outline-history__headers { font-weight:600; padding:8px 0; background:var(--background-secondary); border:1px solid var(--background-modifier-border); border-radius:6px 6px 0 0; }
+.zettel-outline-history__headers > div { padding:0 12px; }
+.zettel-outline-history__scroll { overflow:auto; min-height:160px; max-height:52vh; flex:1 1 auto; border:1px solid var(--background-modifier-border); border-top:0; }
+.zettel-outline-history__cell { padding:5px 10px; min-height:32px; min-width:0; border-bottom:1px solid color-mix(in srgb,var(--background-modifier-border) 35%,transparent); }
+.zettel-outline-history__cell:first-child { border-right:1px solid var(--background-modifier-border); }
+.zettel-outline-history__cell.is-blank { background:var(--background-secondary); }
+.zettel-outline-history__cell.is-before-change { background:color-mix(in srgb,var(--color-red) 9%,transparent); }
+.zettel-outline-history__cell.is-after-change { background:color-mix(in srgb,var(--color-green) 9%,transparent); }
+.zettel-outline-history__node { display:flex; align-items:flex-start; gap:5px; line-height:1.65; overflow-wrap:anywhere; }
+.zettel-outline-history-modal .zettel-outline-history__toggle { flex:0 0 18px; width:18px; height:24px; padding:0; border:0; box-shadow:none; background:transparent; color:var(--text-muted); }
+.zettel-outline-history__toggle svg { width:13px; height:13px; }
+.zettel-outline-history__number { flex-shrink:0; color:var(--text-muted); }
+.zettel-outline-history__name { min-width:0; }
+.zettel-outline-history__path { padding-left:23px; color:var(--text-muted); font-size:var(--font-ui-smaller); overflow-wrap:anywhere; }
+.zettel-outline-history__cell mark { background:transparent; color:inherit; border-radius:2px; }
+.zettel-outline-history__cell.is-before-change mark { background:color-mix(in srgb,var(--color-red) 27%,transparent); }
+.zettel-outline-history__cell.is-after-change mark { background:color-mix(in srgb,var(--color-green) 27%,transparent); }
+.zettel-outline-history__badge { color:var(--text-muted); font-size:var(--font-ui-smaller); white-space:nowrap; }
+.zettel-outline-history__footer { display:flex; align-items:center; gap:16px; padding-top:16px; }
+.zettel-outline-history__footer > div { flex:1; }
+.zettel-outline-history__confirmation { margin-top:12px; padding:12px; border:1px solid var(--background-modifier-border); border-radius:6px; font-size:var(--font-ui-small); }
+.zettel-outline-history__plan { max-height:150px; overflow:auto; margin:10px 0; color:var(--text-muted); overflow-wrap:anywhere; }
+.zettel-outline-history__warning { color:var(--text-warning); padding:8px 0; }
+.zettel-outline-history__empty { padding:28px 0; color:var(--text-muted); }
+
+.zettel-outline-shortcut-help__row {display:flex;justify-content:space-between;align-items:center;gap:20px;padding:7px 0;border-bottom:1px solid var(--background-modifier-border);font-size:var(--font-ui-small);}
+.zettel-outline-shortcut-help__row kbd {white-space:nowrap;color:var(--text-muted);}

@@ -1,3 +1,7 @@
+import { StructureArchive } from "./services/StructureArchive.js";
+import { StructureHistoryModal } from "./view/StructureHistoryModal.js";
+import { normalizeExcludedFolders } from "./index/Exclusions.js";
+import { defaultShortcuts, effectiveShortcuts, keyBinding, shortcutLabel } from "./settings/Shortcuts.js";
 import { Plugin, Notice, Platform, PluginSettingTab, Setting } from "obsidian";
 import { VIEW_TYPE_ZETTEL_OUTLINE, OutlineView } from "./view/OutlineView.js";
 import { t } from "./i18n/i18n.js";
@@ -42,19 +46,27 @@ var ZettelOutlinePlugin = class extends Plugin {
       onIndexUpdated: () => this.refreshViews(),
       onNotices: (messages) => messages.forEach((m) => new Notice(m))
     });
+    const historyPath=(this.manifest.dir || `${this.app.vault.configDir}/plugins/${this.manifest.id}`)+"/history.json";
+    this.indexService.structureArchive=new StructureArchive(this.app,this.indexService,historyPath,error=>{
+      console.error("Zettel Outline: structure history",error);
+      new Notice(t(this.app,"archive.storageError"));
+    });
     this.registerView(VIEW_TYPE_ZETTEL_OUTLINE, (leaf) => new OutlineView(leaf, this.indexService));
     this.addCommand({
-      id: "open-zettel-outline",
+      id: "focus-zettel-outline",
       name: t(this.app, "command.open"),
-      callback: () => this.activateView()
+      callback: () => this.focusOutline()
     });
-    this.addRibbonIcon("list-tree", t(this.app, "ribbon.tooltip"), () => this.activateView());
+    this.addCommand({id:"show-structure-history",name:t(this.app,"archive.open"),callback:()=>new StructureHistoryModal(this.app,this.indexService).open()});
+    this.addRibbonIcon("list-tree", t(this.app, "ribbon.tooltip"), () => this.focusOutline());
     this.settingsTab = new ZettelOutlineSettingTab(this.app, this);
     this.addSettingTab(this.settingsTab);
     await this.indexService.initialize();
+    try{await this.indexService.structureArchive.load();}
+    catch(error){this.indexService.structureArchive.disabled=true;console.error(error);new Notice(t(this.app,"archive.storageError"));}
     this.registerEvent(this.app.vault.on("create", (file) => this.indexService.onCreate(file)));
-    this.registerEvent(this.app.vault.on("delete", (file) => this.indexService.onDelete(file)));
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => this.indexService.onRename(file, oldPath)));
+    this.registerEvent(this.app.vault.on("delete", (file) => {this.indexService.structureArchive.changed(file,file.path,true);this.indexService.onDelete(file);}));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {this.indexService.structureArchive.changed(file,oldPath);this.indexService.onRename(file, oldPath);}));
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
         this.indexService.onFileOpen(file);
@@ -68,6 +80,7 @@ var ZettelOutlinePlugin = class extends Plugin {
     );
   }
   onunload() {
+    void this.indexService.structureArchive?.close().catch(error=>console.error(error));
     void this.indexService.shutdown();
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_ZETTEL_OUTLINE);
   }
@@ -90,7 +103,15 @@ var ZettelOutlinePlugin = class extends Plugin {
     await (leaf == null ? void 0 : leaf.setViewState({ type: VIEW_TYPE_ZETTEL_OUTLINE, active: true }));
     if (leaf) this.app.workspace.revealLeaf(leaf);
   }
+  async focusOutline() {
+    await this.activateView();
+    const leaf=this.app.workspace.getLeavesOfType(VIEW_TYPE_ZETTEL_OUTLINE)[0];
+    if (!leaf) return;
+    await this.app.workspace.revealLeaf(leaf);
+    leaf.view.focusKeyboard?.();
+  }
   refreshViews() {
+    if (this.indexService?.editBatch) return;
     this.settingsTab?.updateExample?.();
     const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_ZETTEL_OUTLINE);
     for (const leaf of leaves) {
@@ -111,7 +132,9 @@ var ZettelOutlineSettingTab = class extends PluginSettingTab {
     };
     this.plugin = plugin;
   }
+  hide() { this.shortcutCaptureCleanup?.(); }
   display() {
+    this.shortcutCaptureCleanup?.();
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: t(this.app, "settings.title") });
@@ -127,10 +150,12 @@ var ZettelOutlineSettingTab = class extends PluginSettingTab {
     };
     const rulesSection = createSection("rules", t(this.app, "settings.section.rules"), { defaultOpen: true });
     const example = rulesSection.createDiv({ cls: "zettel-outline-settings__example", attr: { "aria-live": "polite" } });
+    let excludeRebuildRow = null;
     const updateExample = () => {
       const settings = this.plugin.settings;
       const index = this.plugin.indexService.index;
       const pending = !index || index.stale || index.settingsHash !== settingsHash(settings);
+      excludeRebuildRow?.settingEl.style.setProperty("display", pending ? "" : "none");
       const id = [100, 1, 2].join(settings.idSegmentDelimiter);
       const title = t(this.app, "settings.example.title");
       const trim = settings.titleDelimiter !== " " && settings.allowTrimAroundDelimiter;
@@ -168,6 +193,58 @@ var ZettelOutlineSettingTab = class extends PluginSettingTab {
     updateExample();
     const uiSection = createSection("ui", t(this.app, "settings.section.ui"), { defaultOpen: false });
     const advancedSection = createSection("advanced", t(this.app, "settings.section.advanced"), { defaultOpen: false });
+    const excludeSection=createSection("exclude",t(this.app,"exclude.title"));
+    new Setting(excludeSection).setName(t(this.app,"exclude.folders")).setDesc(t(this.app,"exclude.foldersDesc")).addTextArea(input => {
+      input.setValue(normalizeExcludedFolders(this.plugin.settings.excludedFolders).join("\n"));
+      input.inputEl.rows=3;
+      input.inputEl.setAttribute("aria-label",t(this.app,"exclude.folders"));
+      input.onChange(async value=>{this.plugin.settings.excludedFolders=normalizeExcludedFolders(value);await this.plugin.saveSettings();});
+    });
+    new Setting(excludeSection).setName(t(this.app,"exclude.dates")).setDesc(t(this.app,"exclude.datesDesc")).addToggle(toggle=>toggle.setValue(!!this.plugin.settings.excludeDateIds).onChange(async value=>{this.plugin.settings.excludeDateIds=value;await this.plugin.saveSettings();}));
+    excludeRebuildRow = new Setting(excludeSection).setDesc(t(this.app,"exclude.apply")).addButton(button=>button.setButtonText(t(this.app,"settings.rebuild.name")).onClick(async()=>{
+      button.setDisabled(true);
+      try{await this.plugin.indexService.rebuild({reason:"manual"});this.plugin.refreshViews();}
+      finally{button.setDisabled(false);}
+    }));
+    updateExample();
+    const shortcutSection = createSection("shortcuts", t(this.app,"shortcuts.title"));
+    shortcutSection.createDiv({cls:"setting-item-description",text:t(this.app,"shortcuts.desc")});
+    for (const [action, fallback] of Object.entries(defaultShortcuts)) {
+      const setting = new Setting(shortcutSection).setName(t(this.app,`shortcuts.${action}`));
+      const current=()=>effectiveShortcuts(this.plugin.settings)[action];
+      setting.addButton(button => {
+        const update=()=>button.setButtonText(current() ? shortcutLabel(current()) : t(this.app,"shortcuts.unbound"));
+        update();
+        button.onClick(()=>{
+          this.shortcutCaptureCleanup?.();
+          button.setButtonText(t(this.app,"shortcuts.record"));button.buttonEl.focus();
+          const ownerWindow=button.buttonEl.ownerDocument.defaultView;
+          const cleanup=()=>{ownerWindow.removeEventListener("keydown",record,true);button.buttonEl.removeEventListener("blur",cleanup);update();this.shortcutCaptureCleanup=null;};
+          const record=async event=>{
+            if(event.isComposing)return;
+            event.preventDefault();event.stopImmediatePropagation();
+            if(event.key === "Escape"){cleanup();return;}
+            const binding=event.key === "Backspace" ? "" : keyBinding(event);
+            if(binding === null)return;
+            const bindings=effectiveShortcuts(this.plugin.settings);
+            if(binding && Object.keys(bindings).some(key=>key !== action && bindings[key] === binding)){
+              new Notice(t(this.app,"shortcuts.conflict"));return;
+            }
+            this.plugin.settings.panelShortcuts={...this.plugin.settings.panelShortcuts,[action]:binding};
+            cleanup();await this.plugin.saveSettings();
+          };
+          ownerWindow.addEventListener("keydown",record,true);button.buttonEl.addEventListener("blur",cleanup);
+          this.shortcutCaptureCleanup=cleanup;
+        });
+      }).addExtraButton(button=>button.setIcon("rotate-ccw").setTooltip(t(this.app,"shortcuts.reset")).onClick(async()=>{
+        this.shortcutCaptureCleanup?.();
+        const bindings=effectiveShortcuts(this.plugin.settings);
+        if(Object.keys(bindings).some(key=>key !== action && bindings[key] === fallback)){new Notice(t(this.app,"shortcuts.conflict"));return;}
+        this.plugin.settings.panelShortcuts={...this.plugin.settings.panelShortcuts,[action]:fallback};
+        await this.plugin.saveSettings();this.display();
+      }));
+    }
+
     new Setting(rulesSection).setName(t(this.app, "settings.idPosition.name")).addDropdown(
       (dd) => dd.addOption("prefix", t(this.app, "settings.idPosition.prefix")).addOption("suffix", t(this.app, "settings.idPosition.suffix")).setValue(this.plugin.settings.idPosition).onChange(async (value) => {
         this.plugin.settings.idPosition = value;

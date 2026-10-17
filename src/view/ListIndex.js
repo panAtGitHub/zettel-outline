@@ -2,6 +2,7 @@
 export function buildListIndex(index, delimiter) {
   const idIndex = new Map();
   for (const source of index.idIndex.values()) {
+    if (!source.filePath) continue;
     for (let depth = 1; depth <= source.segments.length; depth++) {
       const segments = source.segments.slice(0, depth);
       const idKey = segments.join(delimiter);
