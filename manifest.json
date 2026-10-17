@@ -1,10 +1,10 @@
 {
   "id": "zettel-outline",
   "name": "Zettel Outline",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minAppVersion": "1.5.0",
-  "description": "Build an outline tree from strict numeric IDs in file names.",
+  "description": "Navigate and edit numbered Markdown note trees with outline views, drag ordering, and structure history.",
   "author": "Dusk",
-  "authorUrl": "",
+  "authorUrl": "https://github.com/panAtGitHub",
   "isDesktopOnly": false
 }

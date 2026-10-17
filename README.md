@@ -1,5 +1,44 @@
 # Zettel Outline
 
+Navigate and edit Markdown notes as a numbered outline in Obsidian. Organize notes by numeric IDs in their filenames, then browse, reorder, and restructure branches from a sidebar.
+
+## Features
+
+- Numeric hierarchy and natural ordering: 2 comes before 10.
+- Classic and list outline styles, virtualized rendering, and active-note navigation.
+- Create parent, child, and sibling notes; rename and reorder branches with keyboard shortcuts or drag and drop.
+- Undo/redo and persistent structure history with before/after comparisons and restore.
+- Configurable filename rules, folder/date exclusions, colors, and panel shortcuts.
+- English and Chinese interface; no network requests or telemetry.
+
+## Quick start
+
+1. Use filenames such as `Projects+100.md`, `Research+100-1.md`, and `Reading+100-1-1.md`.
+2. Open Zettel Outline from the ribbon or command palette.
+3. Match the filename rules in settings and rebuild the index if you change them.
+4. Use the context menu or panel shortcuts in the editing view to create, rename, and move notes.
+
+Each numeric segment supports 0–9999. Prefix and suffix IDs are supported. Structural edits rename files through Obsidian file manager; its automatic internal-link update setting applies. Deleting notes uses the configured trash behavior. Back up your vault before large reorganizations.
+
+## Installation
+
+Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/panAtGitHub/zettel-outline/releases/latest). Place them in `<vault>/.obsidian/plugins/zettel-outline/` and enable Zettel Outline. Preserve existing `data.json` and `history.json` when upgrading.
+
+Community directory submission is being prepared; a GitHub release alone does not mean the plugin is listed in Obsidian.
+
+## Data and compatibility
+
+Settings and the filename index are stored locally in `data.json`. Persistent structure history is stored in `history.json` beside plugin settings and contains paths, titles, and IDs, not note bodies. Certain safety checks read note content to prevent data loss. No network service or account is required. The manifest supports desktop and mobile; touch interaction has not received a full device acceptance test.
+
+[Structure history](docs/structure-history.md) · [Panel shortcuts](docs/panel-shortcuts.md)
+
+## License
+
+[MIT](LICENSE) © Dusk (panAtGitHub).
+
+---
+
+## 中文与开发说明
 根据 Markdown 文件名中的数字编号构建 Obsidian 右侧大纲树。支持桌面与移动端。
 
 ## 项目状态
@@ -51,7 +90,7 @@ npm run build:obsidian
 
 GitHub Actions 会在推送和拉取请求时构建插件、运行回归测试，并保存三个运行文件作为构建产物。构建产物可用于手动测试，不代表正式版本发布。
 
-上架前待办见 [恢复记录](docs/recovery-notes.md)。目前尚未提交上架申请，开源许可证待作者确定。
+上架前待办见 [恢复记录](docs/recovery-notes.md)。采用 MIT 开源许可证。社区目录收录状态以官方页面为准。
 
 ## 结构历史
 
